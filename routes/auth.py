@@ -133,15 +133,23 @@ def login():
             flash('Nom d\'utilisateur ou mot de passe incorrect', 'danger')
             return redirect(url_for('auth.login'))
             
-        # Vérifier si le compte est actif
-        if not user.is_active:
-            flash('Ce compte a été désactivé. Veuillez contacter un administrateur.', 'warning')
-            return redirect(url_for('auth.login'))
-            
-        # Vérifier si le compte est vérifié
-        if not user.is_verified:
-            flash('Ce compte n\'a pas encore été vérifié. Veuillez activer votre compte avec le code fourni par l\'administrateur.', 'warning')
-            return redirect(url_for('auth.activate_account'))
+        # Si c'est un administrateur, on active et vérifie automatiquement
+        if user.is_admin():
+            # Auto-activer les administrateurs
+            if not user.is_active or not user.is_verified:
+                user.is_active = True
+                user.is_verified = True
+                db.session.commit()
+        else:
+            # Vérifier si le compte est actif
+            if not user.is_active:
+                flash('Ce compte a été désactivé. Veuillez contacter un administrateur.', 'warning')
+                return redirect(url_for('auth.login'))
+                
+            # Vérifier si le compte est vérifié
+            if not user.is_verified:
+                flash('Ce compte n\'a pas encore été vérifié. Veuillez activer votre compte avec le code fourni par l\'administrateur.', 'warning')
+                return redirect(url_for('auth.activate_account'))
             
         # Vérifier si l'accès est encore valide
         if not user.has_valid_access():
