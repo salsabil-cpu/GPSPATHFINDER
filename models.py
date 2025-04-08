@@ -16,10 +16,29 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Automatiquement activer et vérifier les comptes administrateurs
+        if hasattr(self, 'role') and self.role == UserRole.ADMIN:
+            self.is_active = True
+            self.is_verified = True
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
+    _role = db.Column('role', db.Enum(UserRole), default=UserRole.USER, nullable=False)
+    
+    @property
+    def role(self):
+        return self._role
+        
+    @role.setter
+    def role(self, value):
+        self._role = value
+        # Automatiquement activer et vérifier les comptes administrateurs
+        if value == UserRole.ADMIN:
+            self.is_active = True
+            self.is_verified = True
     is_active = db.Column(db.Boolean, default=False, nullable=False)  # Changé à False par défaut
     is_verified = db.Column(db.Boolean, default=False, nullable=False)  # Nouveau champ pour vérification
     activation_code = db.Column(db.String(20), nullable=True, index=True)  # Code d'activation
@@ -39,7 +58,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def is_admin(self):
-        return self.role == UserRole.ADMIN
+        return self._role == UserRole.ADMIN
     
     def has_valid_access(self):
         if self.is_admin():

@@ -51,10 +51,7 @@ def add_user():
             return redirect(url_for('admin.users'))
         
         # Créer le nouvel utilisateur
-        # Si c'est un administrateur, on force l'activation et la vérification
-        if role == UserRole.ADMIN:
-            is_active = True
-            is_verified = True
+        # L'activation et la vérification des administrateurs sont gérées dans le modèle User
             
         new_user = User(
             username=username,
@@ -224,10 +221,7 @@ def edit_user(user_id):
         user.email = email
         user.role = role
         
-        # Si on change le rôle en admin, on force l'activation et la vérification
-        if role == UserRole.ADMIN:
-            is_active = True
-            is_verified = True
+        # L'activation et la vérification des administrateurs sont gérées dans le modèle User
             
         user.is_active = is_active
         user.is_verified = is_verified
