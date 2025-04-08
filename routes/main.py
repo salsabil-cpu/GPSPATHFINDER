@@ -26,10 +26,12 @@ def allowed_file(filename):
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 @main_bp.route('/calculate_route', methods=['POST'])
+@login_required
 def calculate_route():
     try:
         # Récupérer les données du formulaire
@@ -142,6 +144,7 @@ def calculate_route():
         return redirect(url_for('main.index'))
 
 @main_bp.route('/upload_excel', methods=['POST'])
+@login_required
 def upload_excel():
     if 'file' not in request.files:
         return jsonify({'error': 'Aucun fichier sélectionné'}), 400
