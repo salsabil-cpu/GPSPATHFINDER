@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            fetch('/upload_excel', {
+            // Utiliser l'URL dynamique générée par Flask
+            fetch(UPLOAD_EXCEL_URL, {
                 method: 'POST',
                 body: formData
             })
