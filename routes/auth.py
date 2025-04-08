@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, get_flashed_messages
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -63,7 +63,128 @@ def logout():
 @auth_bp.route('/profile')
 @login_required
 def profile():
-    return render_template('auth/profile.html')
+    # Création d'une page HTML simple sans utiliser Jinja2
+    html = """
+    <!DOCTYPE html>
+    <html lang="fr" data-bs-theme="dark">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mon profil - GPS Route Optimizer</title>
+        <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+    <body>
+        <div class="container py-4">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="text-center"><i class="fas fa-route"></i> GPS Route Optimizer</h1>
+                    <p class="text-center lead">Mon profil</p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="list-group">
+                        <a href="/index" class="list-group-item list-group-item-action">
+                            <i class="fas fa-map-marked-alt"></i> Calculer un itinéraire
+                        </a>
+                        <a href="/my_routes" class="list-group-item list-group-item-action">
+                            <i class="fas fa-list"></i> Mes itinéraires
+                        </a>
+                        <a href="/profile" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-user-circle"></i> Mon profil
+                        </a>
+    """
+    
+    # Ajouter le lien d'administration si l'utilisateur est admin
+    if current_user.is_admin():
+        html += """
+                        <a href="/admin" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt"></i> Administration
+                        </a>
+        """
+        
+    html += """
+                        <a href="/logout" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-9">
+    """
+    
+    # Ajouter les messages flash
+    messages = []
+    with_categories = True
+    for category, message in get_flashed_messages(with_categories=with_categories):
+        messages.append(f"""
+            <div class="alert alert-{category} alert-dismissible fade show" role="alert">
+                {message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        """)
+    
+    if messages:
+        for message in messages:
+            html += message
+    
+    html += f"""
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="mb-0"><i class="fas fa-info-circle"></i> Informations du compte</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nom d'utilisateur:</strong> {current_user.username}</p>
+                                    <p><strong>Email:</strong> {current_user.email}</p>
+                                    <p><strong>Rôle:</strong> {"Administrateur" if current_user.is_admin() else "Utilisateur"}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Compte actif:</strong> {"Oui" if current_user.is_active else "Non"}</p>
+                                    <p><strong>Accès jusqu'au:</strong> {current_user.access_until.strftime('%d/%m/%Y') if current_user.access_until else "Illimité"}</p>
+                                    <p><strong>Dernière connexion:</strong> {current_user.last_login.strftime('%d/%m/%Y %H:%M') if current_user.last_login else "Jamais"}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0"><i class="fas fa-key"></i> Changer le mot de passe</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="/change-password">
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Mot de passe actuel</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Mettre à jour le mot de passe
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """
+    
+    # Retourner le HTML directement
+    return html
 
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
