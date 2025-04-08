@@ -23,19 +23,8 @@ def admin_required(f):
 @admin_bp.route('/admin')
 @admin_required
 def index():
-    # Récupérer des statistiques
-    stats = {
-        'total_users': User.query.count(),
-        'total_routes': SavedRoute.query.count()
-    }
-    
-    # Récupérer les utilisateurs actifs
-    active_users = User.query.filter_by(is_active=True).order_by(User.username).all()
-    
-    # Date actuelle pour les informations du serveur
-    now = datetime.utcnow()
-    
-    return render_template('admin/index.html', stats=stats, active_users=active_users, now=now)
+    # Rediriger directement vers la page des utilisateurs au lieu d'essayer d'utiliser le template manquant
+    return redirect(url_for('admin.users'))
 
 @admin_bp.route('/admin/users')
 @admin_required
