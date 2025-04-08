@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="fr" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,68 +13,103 @@
         <div class="row mb-4">
             <div class="col-12">
                 <h1 class="text-center"><i class="fas fa-route"></i> GPS Route Optimizer</h1>
-                <p class="text-center lead">Find the shortest path between multiple destinations</p>
+                <p class="text-center lead">Trouvez le chemin le plus court entre plusieurs destinations</p>
             </div>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <a href="{{ url_for('main.index') }}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-map-marked-alt"></i> Calculer un itinéraire
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.my_routes') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-list"></i> Mes itinéraires
+                    </a>
+                    <a href="{{ url_for('auth.profile') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user-circle"></i> Mon profil
+                    </a>
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.index') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users-cog"></i> Administration
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-sign-in-alt"></i> Connexion
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
 
-        <div class="card mb-4">
-            <div class="card-body">
-                <form id="routeForm" action="{{ url_for('calculate_route') }}" method="post">
-                    <h3>Starting Point</h3>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="start_lat" class="form-label">Latitude</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="start_lat" name="start_lat" step="any" required>
-                                <button type="button" class="btn btn-primary" id="getLocationBtn">
-                                    <i class="fas fa-map-marker-alt"></i> Get Current Location
-                                </button>
+            <div class="col-md-9">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="start_lng" class="form-label">Longitude</label>
-                            <input type="number" class="form-control" id="start_lng" name="start_lng" step="any" required>
-                        </div>
-                    </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-                    <hr>
-                    <h3>Waypoints</h3>
-                    <div class="mb-3">
-                        <div class="row mb-2">
-                            <div class="col-12">
-                                <div class="btn-group w-100">
-                                    <button type="button" class="btn btn-success flex-grow-1" id="addWaypointBtn">
-                                        <i class="fas fa-plus"></i> Add Waypoint
-                                    </button>
-                                    <button type="button" class="btn btn-secondary flex-grow-1" id="importExcelBtn" data-bs-toggle="modal" data-bs-target="#excelImportModal">
-                                        <i class="fas fa-file-excel"></i> Import from Excel
-                                    </button>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0"><i class="fas fa-map-marked-alt"></i> Planifier un itinéraire</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="routeForm" action="{{ url_for('main.calculate_route') }}" method="post">
+                            <h4 class="mb-3">Point de départ</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="start_lat" class="form-label">Latitude</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="start_lat" name="start_lat" step="any" required>
+                                        <button type="button" class="btn btn-primary" id="getLocationBtn">
+                                            <i class="fas fa-map-marker-alt"></i> Position actuelle
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="start_lng" class="form-label">Longitude</label>
+                                    <input type="number" class="form-control" id="start_lng" name="start_lng" step="any" required>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div id="waypointsContainer">
-                        <!-- Waypoints will be added here -->
-                    </div>
+                            <hr>
+                            <h4 class="mb-3">Points de passage</h4>
+                            <div class="mb-3">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <div class="btn-group w-100">
+                                            <button type="button" class="btn btn-success flex-grow-1" id="addWaypointBtn">
+                                                <i class="fas fa-plus"></i> Ajouter un point
+                                            </button>
+                                            <button type="button" class="btn btn-secondary flex-grow-1" id="importExcelBtn" data-bs-toggle="modal" data-bs-target="#excelImportModal">
+                                                <i class="fas fa-file-excel"></i> Importer depuis Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg mt-3">
-                            <i class="fas fa-calculator"></i> Calculate Optimized Route
-                        </button>
+                            <div id="waypointsContainer">
+                                <!-- Les points de passage seront ajoutés ici -->
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg mt-3">
+                                    <i class="fas fa-calculator"></i> Calculer l'itinéraire optimisé
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -84,27 +119,27 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="excelImportModalLabel">Import Waypoints from Excel</h5>
+                    <h5 class="modal-title" id="excelImportModalLabel">Importer des points depuis Excel</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Upload an Excel (.xlsx, .xls) or CSV file with the following columns:</p>
+                    <p>Téléchargez un fichier Excel (.xlsx, .xls) ou CSV avec les colonnes suivantes :</p>
                     <ul>
-                        <li><strong>name</strong>: Name of the waypoint</li>
-                        <li><strong>lat</strong>: Latitude (decimal degrees)</li>
-                        <li><strong>lng</strong>: Longitude (decimal degrees)</li>
+                        <li><strong>name</strong> : Nom du point</li>
+                        <li><strong>lat</strong> : Latitude (degrés décimaux)</li>
+                        <li><strong>lng</strong> : Longitude (degrés décimaux)</li>
                     </ul>
                     <form id="excelUploadForm" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label for="excelFile" class="form-label">Excel File</label>
+                            <label for="excelFile" class="form-label">Fichier Excel</label>
                             <input class="form-control" type="file" id="excelFile" accept=".xlsx,.xls,.csv">
                         </div>
                     </form>
                     <div id="excelUploadResult"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="uploadExcelBtn">Upload</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="uploadExcelBtn">Importer</button>
                 </div>
             </div>
         </div>
@@ -115,15 +150,15 @@
         <div class="waypoint-item card mb-3">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">Waypoint</h5>
+                    <h5 class="card-title mb-0">Point de passage</h5>
                     <button type="button" class="btn btn-danger btn-sm remove-waypoint">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control waypoint-name" name="waypoint_name[]" placeholder="Location name">
+                        <label class="form-label">Nom</label>
+                        <input type="text" class="form-control waypoint-name" name="waypoint_name[]" placeholder="Nom du lieu">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Latitude</label>
