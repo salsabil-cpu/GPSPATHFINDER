@@ -164,8 +164,18 @@ document.addEventListener('DOMContentLoaded', function() {
         waypointsContainer.appendChild(waypointNode);
     }
     
-    // Add one waypoint by default if the container is empty
-    if (waypointsContainer && waypointsContainer.children.length === 0) {
+    // Importer les waypoints s'ils existent dans la session
+    if (waypointsContainer && typeof IMPORTED_WAYPOINTS === 'object' && IMPORTED_WAYPOINTS !== null && IMPORTED_WAYPOINTS.length > 0) {
+        // Vider le conteneur existant
+        waypointsContainer.innerHTML = '';
+        
+        // Ajouter les waypoints importés
+        IMPORTED_WAYPOINTS.forEach(point => {
+            addWaypoint(point.name, point.lat, point.lng);
+        });
+    } 
+    // Sinon, ajouter un waypoint par défaut si le conteneur est vide
+    else if (waypointsContainer && waypointsContainer.children.length === 0) {
         addWaypoint();
     }
     

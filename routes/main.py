@@ -28,7 +28,9 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    # Récupérer les waypoints importés de la session s'ils existent
+    imported_waypoints = session.pop('imported_waypoints', None)
+    return render_template('index.html', imported_waypoints=imported_waypoints)
 
 @main_bp.route('/calculate_route', methods=['POST'])
 @login_required
@@ -146,13 +148,22 @@ def calculate_route():
 @main_bp.route('/upload_excel', methods=['POST'])
 @login_required
 def upload_excel():
+    # Détection si la requête attend du JSON (vient du fetch) ou HTML (vient du formulaire)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Content-Type') == 'application/json'
+    
     if 'file' not in request.files:
-        return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+        if is_ajax:
+            return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+        flash('Aucun fichier sélectionné', 'danger')
+        return redirect(url_for('main.index'))
     
     file = request.files['file']
     
     if file.filename == '':
-        return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+        if is_ajax:
+            return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+        flash('Aucun fichier sélectionné', 'danger')
+        return redirect(url_for('main.index'))
     
     if file and allowed_file(file.filename):
         try:
@@ -171,10 +182,11 @@ def upload_excel():
             missing_columns = [col for col in required_columns if col not in df.columns]
             
             if missing_columns:
-                return jsonify({
-                    'error': f'Colonnes manquantes: {", ".join(missing_columns)}. ' +
-                            'Le fichier doit contenir les colonnes: name, lat, lng'
-                }), 400
+                error_msg = f'Colonnes manquantes: {", ".join(missing_columns)}. Le fichier doit contenir les colonnes: name, lat, lng'
+                if is_ajax:
+                    return jsonify({'error': error_msg}), 400
+                flash(error_msg, 'danger')
+                return redirect(url_for('main.index'))
             
             # Convertir en liste de dictionnaires
             waypoints = df.to_dict('records')
@@ -192,11 +204,22 @@ def upload_excel():
                 except (ValueError, TypeError):
                     continue
             
-            return jsonify({'waypoints': valid_waypoints})
+            # Pour une requête AJAX (JavaScript fetch), retourner du JSON
+            if is_ajax:
+                return jsonify({'waypoints': valid_waypoints})
+            
+            # Pour une soumission de formulaire traditionnelle, stocker les waypoints en session et rediriger
+            # vers la page d'index avec les waypoints préchargés
+            session['imported_waypoints'] = valid_waypoints
+            flash(f'{len(valid_waypoints)} points importés avec succès', 'success')
+            return redirect(url_for('main.index'))
         
         except Exception as e:
             logging.error(f"Erreur lors du traitement du fichier Excel: {str(e)}")
-            return jsonify({'error': f'Erreur lors du traitement du fichier: {str(e)}'}), 500
+            if is_ajax:
+                return jsonify({'error': f'Erreur lors du traitement du fichier: {str(e)}'}), 500
+            flash(f'Erreur lors du traitement du fichier: {str(e)}', 'danger')
+            return redirect(url_for('main.index'))
         
         finally:
             # Nettoyer le fichier temporaire

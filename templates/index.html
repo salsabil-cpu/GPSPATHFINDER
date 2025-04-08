@@ -129,26 +129,33 @@
                         <li><strong>lat</strong> : Latitude (degrés décimaux)</li>
                         <li><strong>lng</strong> : Longitude (degrés décimaux)</li>
                     </ul>
-                    <form id="excelUploadForm" enctype="multipart/form-data">
+                    <form id="excelUploadForm" enctype="multipart/form-data" method="post" action="{{ url_for('main.upload_excel') }}">
                         <div class="mb-3">
                             <label for="excelFile" class="form-label">Fichier Excel</label>
-                            <input class="form-control" type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+                            <input class="form-control" type="file" id="excelFile" name="file" accept=".xlsx,.xls,.csv">
+                        </div>
+                        <div id="excelUploadResult"></div>
+                        <div class="mt-3 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                            <button type="submit" class="btn btn-primary">Importer</button>
                         </div>
                     </form>
-                    <div id="excelUploadResult"></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                    <button type="button" class="btn btn-primary" id="uploadExcelBtn">Importer</button>
+                <div class="modal-footer d-none">
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Waypoint Template -->
-    <!-- Upload URL for JavaScript -->
+    <!-- JavaScript variables -->
     <script>
         const UPLOAD_EXCEL_URL = "{{ url_for('main.upload_excel') }}";
+        {% if imported_waypoints %}
+        const IMPORTED_WAYPOINTS = {{ imported_waypoints|tojson }};
+        {% else %}
+        const IMPORTED_WAYPOINTS = null;
+        {% endif %}
     </script>
     
     <template id="waypointTemplate">
