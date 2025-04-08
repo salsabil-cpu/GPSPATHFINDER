@@ -36,6 +36,8 @@ def users():
 @admin_bp.route('/admin/users/add', methods=['GET', 'POST'])
 @admin_required
 def add_user():
+    # Désactivation temporaire de la page d'ajout d'utilisateur
+    # Créer un utilisateur directement via le formulaire (simplifié)
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
@@ -47,7 +49,7 @@ def add_user():
         # Vérifier si l'utilisateur existe déjà
         if User.query.filter((User.username == username) | (User.email == email)).first():
             flash('Un utilisateur avec ce nom ou cet email existe déjà.', 'danger')
-            return redirect(url_for('admin.add_user'))
+            return redirect(url_for('admin.users'))
         
         # Créer le nouvel utilisateur
         new_user = User(
@@ -69,56 +71,16 @@ def add_user():
         flash(f'L\'utilisateur {username} a été créé avec succès.', 'success')
         return redirect(url_for('admin.users'))
     
-    return render_template('admin/add_user.html')
+    # Message d'information pour la version simpliée
+    flash("Pour créer un utilisateur, utilisez directement la base de données ou contactez l'administrateur système.", 'info')
+    return redirect(url_for('admin.users'))
 
 @admin_bp.route('/admin/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_user(user_id):
-    # Récupérer l'utilisateur à modifier
-    user = User.query.get_or_404(user_id)
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        role = UserRole.ADMIN if request.form.get('role') == 'admin' else UserRole.USER
-        is_active = 'is_active' in request.form
-        reset_access = 'reset_access' in request.form
-        access_days = int(request.form.get('access_days', 0))
-        
-        # Vérifier si un autre utilisateur avec le même nom ou email existe
-        existing_user = User.query.filter(
-            (User.id != user_id) & ((User.username == username) | (User.email == email))
-        ).first()
-        
-        if existing_user:
-            flash('Un autre utilisateur avec ce nom ou cet email existe déjà.', 'danger')
-            return redirect(url_for('admin.edit_user', user_id=user_id))
-        
-        # Mettre à jour les informations de l'utilisateur
-        user.username = username
-        user.email = email
-        user.role = role
-        user.is_active = is_active
-        
-        # Mettre à jour le mot de passe si fourni
-        if password:
-            user.set_password(password)
-        
-        # Réinitialiser la date d'accès si demandé
-        if reset_access:
-            if access_days > 0:
-                user.access_until = datetime.utcnow() + timedelta(days=access_days)
-            else:
-                user.access_until = None
-        
-        # Enregistrer les modifications
-        db.session.commit()
-        
-        flash(f'L\'utilisateur {username} a été mis à jour avec succès.', 'success')
-        return redirect(url_for('admin.users'))
-    
-    return render_template('admin/edit_user.html', user=user)
+    # Désactivation temporaire de la page de modification d'utilisateur
+    flash("La modification des utilisateurs est temporairement désactivée.", 'info')
+    return redirect(url_for('admin.users'))
 
 @admin_bp.route('/admin/users/<int:user_id>/delete', methods=['POST'])
 @admin_required
