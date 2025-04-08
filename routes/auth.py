@@ -5,7 +5,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy.exc import IntegrityError
 import re
 
-from app import db
+# from app import db
+from extensions import db, login_manager
 from models import User, UserRole
 
 # Créer le blueprint d'authentification

@@ -3,9 +3,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 
-from app import db
-from models import User, UserRole, SavedRoute
 
+from models import User, UserRole, SavedRoute
+# from app import db
+from extensions import db, login_manager  # 👈 Import modifié
 # Créer le blueprint d'administration
 admin_bp = Blueprint('admin', __name__)
 

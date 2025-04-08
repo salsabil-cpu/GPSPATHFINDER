@@ -10,7 +10,8 @@ import folium
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
-from app import db
+# from app import db
+from extensions import db, login_manager  # 👈 Import modifié
 from models import SavedRoute
 from utils.route_optimizer import optimize_route
 from utils.geo_utils import validate_coordinates, calculate_distance, format_distance
