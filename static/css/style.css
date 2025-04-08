@@ -1,0 +1,64 @@
+/* Custom styles for the application */
+
+body {
+    padding-bottom: 2rem;
+}
+
+/* Map container styling */
+.map-container {
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+/* Folium map styling - ensure dark mode compatibility */
+.folium-map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Make sure the map controls are visible in dark mode */
+.leaflet-control-zoom a {
+    color: #333 !important;
+}
+
+.leaflet-popup-content-wrapper {
+    color: #333 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .map-container {
+        height: 400px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.25rem !important;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Animations */
+.waypoint-item {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus states for better accessibility */
+.form-control:focus,
+.btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
