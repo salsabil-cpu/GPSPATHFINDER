@@ -35,8 +35,16 @@ def optimize_route(start_point, waypoints):
             G.add_edge(i, j, weight=distance)
     
     # Find the approximate solution to the TSP
-    # Starting from node 0 (which is the start_point)
-    tsp_path = nx.approximation.traveling_salesman_problem(G, cycle=False, source=0)
+    # We need to ensure the start point (index 0) is the first node in the path
+    # Since newer versions of NetworkX don't support 'source' parameter, we will handle this differently
+    tsp_path = nx.approximation.traveling_salesman_problem(G, cycle=False)
+    
+    # If the first element is not 0 (our start point), we need to reorder the path
+    if tsp_path[0] != 0:
+        # Find the position of 0 in the path
+        start_pos = tsp_path.index(0)
+        # Reorder the path to start from position 0
+        tsp_path = tsp_path[start_pos:] + tsp_path[:start_pos]
     
     # Convert node indices back to waypoints
     optimized_route = [all_points[i] for i in tsp_path]
