@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - GPS Route Optimizer</title>
+    <title>Inscription - GPS Route Optimizer</title>
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +15,7 @@
                 <div class="card shadow">
                     <div class="card-header text-center py-4">
                         <h2 class="mb-0"><i class="fas fa-route"></i> GPS Route Optimizer</h2>
-                        <p class="lead mb-0">Connexion</p>
+                        <p class="lead mb-0">Créer un compte</p>
                     </div>
                     <div class="card-body p-4">
                         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -29,12 +29,20 @@
                             {% endif %}
                         {% endwith %}
 
-                        <form method="POST" action="{{ url_for('auth.login') }}">
+                        <form method="POST" action="{{ url_for('auth.register') }}">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Nom d'utilisateur</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control" id="username" name="username" required autofocus>
+                                </div>
+                                <div class="form-text">Choisissez un nom d'utilisateur unique.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Adresse e-mail</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" required>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -43,20 +51,24 @@
                                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                                     <input type="password" class="form-control" id="password" name="password" required>
                                 </div>
+                                <div class="form-text">Le mot de passe doit contenir au moins 6 caractères.</div>
                             </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirmer le mot de passe</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                                    <i class="fas fa-user-plus"></i> S'inscrire
                                 </button>
                             </div>
                         </form>
                     </div>
                     <div class="card-footer text-center py-3">
-                        <p class="mb-0">Vous n'avez pas de compte? <a href="{{ url_for('auth.register') }}">S'inscrire</a></p>
+                        <p class="mb-0">Vous avez déjà un compte? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>
                     </div>
                 </div>
             </div>

@@ -2,12 +2,78 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, get_flashed_messages
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
+from sqlalchemy.exc import IntegrityError
+import re
 
 from app import db
-from models import User
+from models import User, UserRole
 
 # Créer le blueprint d'authentification
 auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validation des données
+        if not username or not email or not password or not confirm_password:
+            flash('Tous les champs sont requis.', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        if password != confirm_password:
+            flash('Les mots de passe ne correspondent pas.', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        if len(password) < 6:
+            flash('Le mot de passe doit contenir au moins 6 caractères.', 'danger')
+            return redirect(url_for('auth.register'))
+        
+        # Validation du format de l'email
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            flash('Adresse e-mail invalide.', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        # Vérifier si l'utilisateur ou l'email existe déjà
+        username_exists = User.query.filter_by(username=username).first()
+        email_exists = User.query.filter_by(email=email).first()
+        
+        if username_exists:
+            flash('Ce nom d\'utilisateur est déjà utilisé.', 'danger')
+            return redirect(url_for('auth.register'))
+            
+        if email_exists:
+            flash('Cette adresse e-mail est déjà utilisée.', 'danger')
+            return redirect(url_for('auth.register'))
+        
+        # Créer un nouvel utilisateur
+        try:
+            new_user = User(
+                username=username,
+                email=email,
+                role=UserRole.USER,
+                is_active=True
+            )
+            new_user.set_password(password)
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash('Inscription réussie! Vous pouvez maintenant vous connecter.', 'success')
+            return redirect(url_for('auth.login'))
+        except IntegrityError:
+            db.session.rollback()
+            flash('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.', 'danger')
+            return redirect(url_for('auth.register'))
+    
+    return render_template('auth/register.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
