@@ -51,6 +51,11 @@ def add_user():
             return redirect(url_for('admin.users'))
         
         # Créer le nouvel utilisateur
+        # Si c'est un administrateur, on force l'activation et la vérification
+        if role == UserRole.ADMIN:
+            is_active = True
+            is_verified = True
+            
         new_user = User(
             username=username,
             email=email,
@@ -218,6 +223,12 @@ def edit_user(user_id):
         user.username = username
         user.email = email
         user.role = role
+        
+        # Si on change le rôle en admin, on force l'activation et la vérification
+        if role == UserRole.ADMIN:
+            is_active = True
+            is_verified = True
+            
         user.is_active = is_active
         user.is_verified = is_verified
         
@@ -287,7 +298,7 @@ def edit_user(user_id):
                             <h3 class="mb-0"><i class="fas fa-user-edit"></i> Modifier un utilisateur</h3>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="/admin/users/{user_id}/edit">
+                            <form method="POST" action="/admin/users/{user_id}/edit" id="edit-user-form">
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Nom d'utilisateur</label>
                                     <input type="text" class="form-control" id="username" name="username" value="{user.username}" required>
@@ -307,6 +318,7 @@ def edit_user(user_id):
                                         <option value="user" {"selected" if user.role == UserRole.USER else ""}>Utilisateur</option>
                                         <option value="admin" {"selected" if user.role == UserRole.ADMIN else ""}>Administrateur</option>
                                     </select>
+                                    <div class="form-text">Note: Les administrateurs sont automatiquement activés et vérifiés.</div>
                                 </div>
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {"checked" if user.is_active else ""}>
@@ -316,6 +328,7 @@ def edit_user(user_id):
                                     <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" {"checked" if user.is_verified else ""}>
                                     <label class="form-check-label" for="is_verified">Compte vérifié</label>
                                 </div>
+
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" id="reset_access" name="reset_access">
                                     <label class="form-check-label" for="reset_access">Réinitialiser la durée d'accès</label>
