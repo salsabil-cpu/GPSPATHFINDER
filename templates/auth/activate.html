@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - GPS Route Optimizer</title>
+    <title>Activation du compte - GPS Route Optimizer</title>
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +15,7 @@
                 <div class="card shadow">
                     <div class="card-header text-center py-4">
                         <h2 class="mb-0"><i class="fas fa-route"></i> GPS Route Optimizer</h2>
-                        <p class="lead mb-0">Connexion</p>
+                        <p class="lead mb-0">Activation du compte</p>
                     </div>
                     <div class="card-body p-4">
                         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -29,35 +29,33 @@
                             {% endif %}
                         {% endwith %}
 
-                        <form method="POST" action="{{ url_for('auth.login') }}">
+                        <p>Veuillez entrer le code d'activation qui vous a été fourni par l'administrateur pour activer votre compte.</p>
+
+                        <form method="POST" action="{{ url_for('auth.activate_account') }}">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Nom d'utilisateur</label>
+                                <label for="username" class="form-label">Nom d'utilisateur ou email</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                                     <input type="text" class="form-control" id="username" name="username" required autofocus>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="password" class="form-label">Mot de passe</label>
+                                <label for="activation_code" class="form-label">Code d'activation</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                    <input type="text" class="form-control" id="activation_code" name="activation_code" maxlength="8" required>
                                 </div>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Se souvenir de moi</label>
+                                <div class="form-text">Le code d'activation est composé de 8 caractères alphanumériques.</div>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                                    <i class="fas fa-check-circle"></i> Activer mon compte
                                 </button>
                             </div>
                         </form>
                     </div>
                     <div class="card-footer text-center py-3">
-                        <p class="mb-0">Vous n'avez pas de compte? <a href="{{ url_for('auth.register') }}">S'inscrire</a></p>
-                        <p class="mb-0 mt-2">Compte en attente d'activation? <a href="{{ url_for('auth.activate_account') }}">Activer mon compte</a></p>
+                        <p class="mb-0"><a href="{{ url_for('auth.login') }}">Retour à la page de connexion</a></p>
                     </div>
                 </div>
             </div>

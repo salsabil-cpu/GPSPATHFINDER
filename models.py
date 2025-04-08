@@ -1,4 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
+import string
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -18,7 +20,10 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_active = db.Column(db.Boolean, default=False, nullable=False)  # Changé à False par défaut
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)  # Nouveau champ pour vérification
+    activation_code = db.Column(db.String(20), nullable=True, index=True)  # Code d'activation
+    activation_code_expires = db.Column(db.DateTime, nullable=True)  # Date d'expiration du code
     access_until = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -39,11 +44,42 @@ class User(UserMixin, db.Model):
     def has_valid_access(self):
         if self.is_admin():
             return True
-        if not self.is_active:
+        if not self.is_active or not self.is_verified:
             return False
         if self.access_until is None:
             return True
         return datetime.utcnow() <= self.access_until
+    
+    def generate_activation_code(self, expiration_days=7):
+        """Génère un code d'activation unique qui expire après expiration_days jours"""
+        # Générer un code de 8 caractères (lettres majuscules et chiffres)
+        code_chars = string.ascii_uppercase + string.digits
+        self.activation_code = ''.join(random.choice(code_chars) for _ in range(8))
+        
+        # Définir la date d'expiration
+        self.activation_code_expires = datetime.utcnow() + timedelta(days=expiration_days)
+        
+        return self.activation_code
+    
+    def check_activation_code(self, code):
+        """Vérifie si le code d'activation fourni est valide et non expiré"""
+        if not self.activation_code or not code:
+            return False
+        
+        if not self.activation_code_expires or datetime.utcnow() > self.activation_code_expires:
+            return False
+            
+        return self.activation_code == code
+    
+    def activate_account(self, code):
+        """Active le compte si le code d'activation est valide"""
+        if self.check_activation_code(code):
+            self.is_verified = True
+            self.is_active = True
+            self.activation_code = None
+            self.activation_code_expires = None
+            return True
+        return False
 
 class SavedRoute(db.Model):
     __tablename__ = 'saved_routes'

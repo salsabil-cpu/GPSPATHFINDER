@@ -42,6 +42,7 @@ def add_user():
         password = request.form.get('password')
         role = UserRole.ADMIN if request.form.get('role') == 'admin' else UserRole.USER
         is_active = 'is_active' in request.form
+        is_verified = 'is_verified' in request.form
         access_days = int(request.form.get('access_days', 0))
         
         # Vérifier si l'utilisateur existe déjà
@@ -54,7 +55,8 @@ def add_user():
             username=username,
             email=email,
             role=role,
-            is_active=is_active
+            is_active=is_active,
+            is_verified=is_verified
         )
         new_user.set_password(password)
         
@@ -142,6 +144,10 @@ def add_user():
                                     <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
                                     <label class="form-check-label" for="is_active">Compte actif</label>
                                 </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" checked>
+                                    <label class="form-check-label" for="is_verified">Compte vérifié</label>
+                                </div>
                                 <div class="mb-3">
                                     <label for="access_days" class="form-label">Durée d'accès (jours)</label>
                                     <input type="number" class="form-control" id="access_days" name="access_days" min="0" value="0">
@@ -168,6 +174,21 @@ def add_user():
     """
     return form_html
 
+@admin_bp.route('/admin/users/<int:user_id>/generate-activation', methods=['GET'])
+@admin_required
+def generate_activation_code(user_id):
+    # Récupérer l'utilisateur
+    user = User.query.get_or_404(user_id)
+    
+    # Générer un nouveau code d'activation
+    activation_code = user.generate_activation_code()
+    
+    # Enregistrer les modifications
+    db.session.commit()
+    
+    flash(f'Code d\'activation généré pour {user.username}: {activation_code}', 'success')
+    return redirect(url_for('admin.users'))
+
 @admin_bp.route('/admin/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def edit_user(user_id):
@@ -180,6 +201,7 @@ def edit_user(user_id):
         password = request.form.get('password')
         role = UserRole.ADMIN if request.form.get('role') == 'admin' else UserRole.USER
         is_active = 'is_active' in request.form
+        is_verified = 'is_verified' in request.form  # Nouvel attribut
         reset_access = 'reset_access' in request.form
         access_days = int(request.form.get('access_days', 0))
         
@@ -197,6 +219,7 @@ def edit_user(user_id):
         user.email = email
         user.role = role
         user.is_active = is_active
+        user.is_verified = is_verified
         
         # Mettre à jour le mot de passe si fourni
         if password:
@@ -288,6 +311,10 @@ def edit_user(user_id):
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {"checked" if user.is_active else ""}>
                                     <label class="form-check-label" for="is_active">Compte actif</label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="is_verified" name="is_verified" {"checked" if user.is_verified else ""}>
+                                    <label class="form-check-label" for="is_verified">Compte vérifié</label>
                                 </div>
                                 <div class="mb-3 form-check">
                                     <input type="checkbox" class="form-check-input" id="reset_access" name="reset_access">

@@ -72,6 +72,8 @@
                                         <th>Email</th>
                                         <th>Rôle</th>
                                         <th>Statut</th>
+                                        <th>Vérifié</th>
+                                        <th>Code d'activation</th>
                                         <th>Accès jusqu'au</th>
                                         <th>Actions</th>
                                     </tr>
@@ -94,6 +96,31 @@
                                             <span class="badge bg-success">Actif</span>
                                             {% else %}
                                             <span class="badge bg-danger">Inactif</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.is_verified %}
+                                            <span class="badge bg-success">Vérifié</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Non vérifié</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if user.activation_code %}
+                                            <span class="badge bg-info">{{ user.activation_code }}</span>
+                                            <button class="btn btn-sm btn-outline-secondary" 
+                                                onclick="navigator.clipboard.writeText('{{ user.activation_code }}'); 
+                                                        alert('Code copié!');">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            {% else %}
+                                            {% if user.is_verified %}
+                                            <span class="badge bg-secondary">N/A</span>
+                                            {% else %}
+                                            <a href="{{ url_for('admin.generate_activation_code', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-key"></i> Générer
+                                            </a>
+                                            {% endif %}
                                             {% endif %}
                                         </td>
                                         <td>

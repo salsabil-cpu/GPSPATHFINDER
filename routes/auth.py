@@ -53,27 +53,67 @@ def register():
             flash('Cette adresse e-mail est déjà utilisée.', 'danger')
             return redirect(url_for('auth.register'))
         
-        # Créer un nouvel utilisateur
+        # Créer un nouvel utilisateur (inactif par défaut)
         try:
             new_user = User(
                 username=username,
                 email=email,
                 role=UserRole.USER,
-                is_active=True
+                is_active=False,
+                is_verified=False
             )
             new_user.set_password(password)
+            
+            # Générer un code d'activation
+            activation_code = new_user.generate_activation_code()
             
             db.session.add(new_user)
             db.session.commit()
             
-            flash('Inscription réussie! Vous pouvez maintenant vous connecter.', 'success')
-            return redirect(url_for('auth.login'))
+            flash(f'Inscription réussie! Veuillez contacter un administrateur pour obtenir votre code d\'activation.', 'success')
+            return redirect(url_for('auth.activate_account'))
         except IntegrityError:
             db.session.rollback()
             flash('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.', 'danger')
             return redirect(url_for('auth.register'))
     
     return render_template('auth/register.html')
+
+@auth_bp.route('/activate', methods=['GET', 'POST'])
+def activate_account():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        activation_code = request.form.get('activation_code')
+        
+        if not username or not activation_code:
+            flash('Tous les champs sont requis.', 'danger')
+            return redirect(url_for('auth.activate_account'))
+        
+        # Rechercher l'utilisateur
+        user = User.query.filter((User.username == username) | (User.email == username)).first()
+        
+        if not user:
+            flash('Utilisateur non trouvé.', 'danger')
+            return redirect(url_for('auth.activate_account'))
+            
+        # Vérifier si le compte est déjà activé
+        if user.is_verified and user.is_active:
+            flash('Ce compte est déjà activé. Vous pouvez vous connecter.', 'info')
+            return redirect(url_for('auth.login'))
+            
+        # Activer le compte
+        if user.activate_account(activation_code):
+            db.session.commit()
+            flash('Votre compte a été activé avec succès! Vous pouvez maintenant vous connecter.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Code d\'activation invalide ou expiré.', 'danger')
+            return redirect(url_for('auth.activate_account'))
+    
+    return render_template('auth/activate.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -97,6 +137,11 @@ def login():
         if not user.is_active:
             flash('Ce compte a été désactivé. Veuillez contacter un administrateur.', 'warning')
             return redirect(url_for('auth.login'))
+            
+        # Vérifier si le compte est vérifié
+        if not user.is_verified:
+            flash('Ce compte n\'a pas encore été vérifié. Veuillez activer votre compte avec le code fourni par l\'administrateur.', 'warning')
+            return redirect(url_for('auth.activate_account'))
             
         # Vérifier si l'accès est encore valide
         if not user.has_valid_access():
@@ -209,6 +254,7 @@ def profile():
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>Compte actif:</strong> {"Oui" if current_user.is_active else "Non"}</p>
+                                    <p><strong>Compte vérifié:</strong> {"Oui" if current_user.is_verified else "Non"}</p>
                                     <p><strong>Accès jusqu'au:</strong> {current_user.access_until.strftime('%d/%m/%Y') if current_user.access_until else "Illimité"}</p>
                                     <p><strong>Dernière connexion:</strong> {current_user.last_login.strftime('%d/%m/%Y %H:%M') if current_user.last_login else "Jamais"}</p>
                                 </div>
