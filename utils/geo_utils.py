@@ -1,5 +1,7 @@
-from geopy.distance import geodesic
 import math
+
+from geopy.distance import geodesic
+
 
 def validate_coordinates(lat, lng):
     """
@@ -19,6 +21,7 @@ def validate_coordinates(lat, lng):
     except (ValueError, TypeError):
         return False
 
+
 def calculate_distance(point1, point2):
     """
     Calculates the distance between two points in kilometers.
@@ -31,6 +34,7 @@ def calculate_distance(point1, point2):
         float: Distance in kilometers
     """
     return geodesic(point1, point2).kilometers
+
 
 def format_distance(distance_km):
     """

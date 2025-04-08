@@ -1,9 +1,10 @@
+import logging
 import os
 import tempfile
-import logging
+
+from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify, session, flash, redirect, url_for
+
 from extensions import db, login_manager  # 👈 Import modifié
 
 # Création de l'app Flask
@@ -62,4 +63,4 @@ with app.app_context():
         logging.info('Admin créé')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

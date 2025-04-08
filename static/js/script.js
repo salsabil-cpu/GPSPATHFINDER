@@ -1,5 +1,5 @@
 // Wait for the DOM to be fully loaded before running the script
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Elements
     const getLocationBtn = document.getElementById('getLocationBtn');
     const startLatInput = document.getElementById('start_lat');
@@ -10,28 +10,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadExcelBtn = document.getElementById('uploadExcelBtn');
     const excelFileInput = document.getElementById('excelFile');
     const excelUploadResult = document.getElementById('excelUploadResult');
-    
+
     // Get current location when button is clicked
     if (getLocationBtn) {
-        getLocationBtn.addEventListener('click', function() {
+        getLocationBtn.addEventListener('click', function () {
             if (navigator.geolocation) {
                 getLocationBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Getting location...';
                 getLocationBtn.disabled = true;
-                
+
                 navigator.geolocation.getCurrentPosition(
-                    function(position) {
+                    function (position) {
                         // Success callback
                         startLatInput.value = position.coords.latitude.toFixed(6);
                         startLngInput.value = position.coords.longitude.toFixed(6);
-                        
+
                         getLocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Get Current Location';
                         getLocationBtn.disabled = false;
                     },
-                    function(error) {
+                    function (error) {
                         // Error callback
                         let errorMessage = 'Unable to retrieve your location. ';
-                        
-                        switch(error.code) {
+
+                        switch (error.code) {
                             case error.PERMISSION_DENIED:
                                 errorMessage += 'User denied the request for Geolocation.';
                                 break;
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 errorMessage += 'An unknown error occurred.';
                                 break;
                         }
-                        
+
                         alert(errorMessage);
                         getLocationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Get Current Location';
                         getLocationBtn.disabled = false;
@@ -56,17 +56,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Add waypoint when button is clicked
     if (addWaypointBtn) {
-        addWaypointBtn.addEventListener('click', function() {
+        addWaypointBtn.addEventListener('click', function () {
             addWaypoint();
         });
     }
-    
+
     // Handle Excel file upload
     if (uploadExcelBtn) {
-        uploadExcelBtn.addEventListener('click', function() {
+        uploadExcelBtn.addEventListener('click', function () {
             const fileInput = document.getElementById('excelFile');
             if (!fileInput.files.length) {
                 excelUploadResult.innerHTML = `
@@ -76,11 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 return;
             }
-            
+
             const file = fileInput.files[0];
             const formData = new FormData();
             formData.append('file', file);
-            
+
             excelUploadResult.innerHTML = `
                 <div class="alert alert-info">
                     <div class="d-flex align-items-center">
@@ -89,112 +89,112 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-            
+
             // Utiliser l'URL dynamique générée par Flask
             fetch(UPLOAD_EXCEL_URL, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    excelUploadResult.innerHTML = `
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        excelUploadResult.innerHTML = `
                         <div class="alert alert-danger">
                             ${data.error}
                         </div>
                     `;
-                } else if (data.waypoints && data.waypoints.length > 0) {
-                    // Clear existing waypoints
-                    waypointsContainer.innerHTML = '';
-                    
-                    // Add waypoints from the uploaded file
-                    data.waypoints.forEach(point => {
-                        addWaypoint(point.name, point.lat, point.lng);
-                    });
-                    
-                    excelUploadResult.innerHTML = `
+                    } else if (data.waypoints && data.waypoints.length > 0) {
+                        // Clear existing waypoints
+                        waypointsContainer.innerHTML = '';
+
+                        // Add waypoints from the uploaded file
+                        data.waypoints.forEach(point => {
+                            addWaypoint(point.name, point.lat, point.lng);
+                        });
+
+                        excelUploadResult.innerHTML = `
                         <div class="alert alert-success">
                             Successfully imported ${data.waypoints.length} waypoints
                         </div>
                     `;
-                    
-                    // Close modal after a delay
-                    setTimeout(() => {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('excelImportModal'));
-                        if (modal) {
-                            modal.hide();
-                        }
-                    }, 1500);
-                } else {
-                    excelUploadResult.innerHTML = `
+
+                        // Close modal after a delay
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('excelImportModal'));
+                            if (modal) {
+                                modal.hide();
+                            }
+                        }, 1500);
+                    } else {
+                        excelUploadResult.innerHTML = `
                         <div class="alert alert-warning">
                             No valid waypoints found in the file
                         </div>
                     `;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                excelUploadResult.innerHTML = `
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    excelUploadResult.innerHTML = `
                     <div class="alert alert-danger">
                         Error uploading file: ${error.message}
                     </div>
                 `;
-            });
+                });
         });
     }
-    
+
     // Function to add a new waypoint to the form
     function addWaypoint(name = '', lat = '', lng = '') {
         const waypointNode = document.importNode(waypointTemplate.content, true);
         const waypointElement = waypointNode.querySelector('.waypoint-item');
-        
+
         // Set values if provided
         waypointNode.querySelector('.waypoint-name').value = name;
         waypointNode.querySelector('.waypoint-lat').value = lat;
         waypointNode.querySelector('.waypoint-lng').value = lng;
-        
+
         // Set up remove button functionality
         const removeBtn = waypointNode.querySelector('.remove-waypoint');
-        removeBtn.addEventListener('click', function() {
+        removeBtn.addEventListener('click', function () {
             waypointElement.remove();
         });
-        
+
         // Add waypoint to container
         waypointsContainer.appendChild(waypointNode);
     }
-    
+
     // Importer les waypoints s'ils existent dans la session
     if (waypointsContainer && typeof IMPORTED_WAYPOINTS === 'object' && IMPORTED_WAYPOINTS !== null && IMPORTED_WAYPOINTS.length > 0) {
         // Vider le conteneur existant
         waypointsContainer.innerHTML = '';
-        
+
         // Ajouter les waypoints importés
         IMPORTED_WAYPOINTS.forEach(point => {
             addWaypoint(point.name, point.lat, point.lng);
         });
-    } 
+    }
     // Sinon, ajouter un waypoint par défaut si le conteneur est vide
     else if (waypointsContainer && waypointsContainer.children.length === 0) {
         addWaypoint();
     }
-    
+
     // Form validation
     const routeForm = document.getElementById('routeForm');
     if (routeForm) {
-        routeForm.addEventListener('submit', function(event) {
+        routeForm.addEventListener('submit', function (event) {
             const startLat = parseFloat(startLatInput.value);
             const startLng = parseFloat(startLngInput.value);
-            
+
             // Validate starting coordinates
-            if (isNaN(startLat) || isNaN(startLng) || 
-                startLat < -90 || startLat > 90 || 
+            if (isNaN(startLat) || isNaN(startLng) ||
+                startLat < -90 || startLat > 90 ||
                 startLng < -180 || startLng > 180) {
                 event.preventDefault();
                 alert('Please enter valid starting coordinates (Latitude: -90 to 90, Longitude: -180 to 180)');
                 return;
             }
-            
+
             // Validate waypoints
             const waypointItems = document.querySelectorAll('.waypoint-item');
             if (waypointItems.length === 0) {
@@ -202,24 +202,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Please add at least one waypoint');
                 return;
             }
-            
+
             let hasValidWaypoint = false;
-            
+
             for (const item of waypointItems) {
                 const latInput = item.querySelector('.waypoint-lat');
                 const lngInput = item.querySelector('.waypoint-lng');
-                
+
                 const lat = parseFloat(latInput.value);
                 const lng = parseFloat(lngInput.value);
-                
-                if (!isNaN(lat) && !isNaN(lng) && 
-                    lat >= -90 && lat <= 90 && 
+
+                if (!isNaN(lat) && !isNaN(lng) &&
+                    lat >= -90 && lat <= 90 &&
                     lng >= -180 && lng <= 180) {
                     hasValidWaypoint = true;
                     break;
                 }
             }
-            
+
             if (!hasValidWaypoint) {
                 event.preventDefault();
                 alert('Please enter valid coordinates for at least one waypoint');

@@ -30,11 +30,11 @@ body {
     .map-container {
         height: 400px;
     }
-    
+
     .btn-group {
         flex-direction: column;
     }
-    
+
     .btn-group .btn {
         border-radius: 0.25rem !important;
         margin-bottom: 0.5rem;
