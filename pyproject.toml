@@ -11,6 +11,7 @@ dependencies = [
     "geopy>=2.4.1",
     "gunicorn>=23.0.0",
     "networkx>=3.4.2",
+    "openpyxl>=3.1.5",
     "pandas>=2.2.3",
     "psycopg2-binary>=2.9.10",
     "werkzeug>=3.1.3",
